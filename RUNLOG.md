@@ -29,3 +29,21 @@ vocab (fewer tokens per block -> more real content per fixed context
 window) outweighed the added learning difficulty of more output classes.
 Convergence wasn't the bottleneck in this range; context coverage was.
 Decision: keep vocab=1500 as final config.
+
+### Run D: Muon optimizer (2D weights) + AdamW (embeddings/norms) hybrid, BPE vocab=700
+Hypothesis: Muon's Newton-Schulz orthogonalization of momentum should
+improve sample efficiency on 2D hidden weights within the fixed 2000-step
+budget, based on community reports of ~35% step reduction vs AdamW on
+nanoGPT-style speedruns.
+Changed: train.py optimizer (single AdamW -> Muon for 2D matrices, AdamW
+for embeddings/norms/biases), momentum=0.95, Muon lr=0.02 scaled by same
+warmup/cosine shape as AdamW schedule. Same BPE vocab=700 tokenizer as
+Run C for a clean comparison.
+Dev bpb: 2.2616 (AdamW, vocab 700) -> 2.1299 (Muon hybrid, vocab 700)
+Loss curve still decreasing steeply at step 2000 (3.59->3.53 last 100
+steps), unlike prior AdamW runs which had largely flattened by step 1500.
+Conclusion: CONFIRMED, and cheaply: Muon closed most of the gap to the
+vocab=1500 AdamW result (2.1895) using a *smaller* vocab (700), suggesting
+the optimizer swap is more parameter-efficient than scaling tokenizer
+vocab. Given the still-descending loss curve, Muon likely has more
+headroom than AdamW within the same step budget.
