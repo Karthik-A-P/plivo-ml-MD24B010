@@ -47,3 +47,13 @@ vocab=1500 AdamW result (2.1895) using a *smaller* vocab (700), suggesting
 the optimizer swap is more parameter-efficient than scaling tokenizer
 vocab. Given the still-descending loss curve, Muon likely has more
 headroom than AdamW within the same step budget.
+
+### Run E — Muon + BPE vocab=1500
+
+**Hypothesis:** Under AdamW, scaling vocab 700→1500 clearly helped (Run C → Run B). If that effect is independent of optimizer choice, the same jump should help under Muon too.
+
+**What changed:** Identical Muon+AdamW hybrid setup as Run D, retrained against the vocab=1500 BPE tokenizer instead of vocab=700. Full 2,000-step run (final loss 4.18, down from 7.34).
+
+**Dev bpb:** 2.1299 (Run D) → **2.1333**
+
+**Conclusion:** Hypothesis rejected. bpb was flat-to-slightly-worse despite 128K additional parameters (1,497,920 vs 1,369,920). Muon's per-step optimization efficiency appears to substitute for some of what extra vocab capacity was buying AdamW — the two levers are not simply additive. **Run D (vocab 700) is kept as the final checkpoint: best score, fewest parameters.**
