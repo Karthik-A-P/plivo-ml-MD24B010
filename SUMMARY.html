@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2,000 Step LLM Speedrun — Run Summary</title>
+<style>
+  :root{
+    --bg: #0b0f10;
+    --panel: #12181a;
+    --line: #223033;
+    --ink: #e7ede9;
+    --ink-dim: #93a5a3;
+    --signal: #5fd0c0;
+    --amber: #e0a458;
+    --bad: #d97757;
+    --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+    --sans: 'Inter', -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--sans); line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--signal);}
+  .wrap{max-width:920px; margin:0 auto; padding:64px 24px 96px;}
+
+  header.hero{
+    border-bottom:1px solid var(--line);
+    padding-bottom:36px; margin-bottom:48px;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--signal); margin-bottom:14px;
+  }
+  h1{
+    font-family:var(--mono); font-weight:600; font-size:clamp(28px,4vw,42px);
+    margin:0 0 12px; letter-spacing:-0.01em; color:var(--ink);
+  }
+  .subtitle{color:var(--ink-dim); font-size:16px; max-width:60ch;}
+
+  .headline-metric{
+    display:flex; gap:36px; margin-top:32px; flex-wrap:wrap;
+  }
+  .metric{
+    font-family:var(--mono); border-left:2px solid var(--signal); padding-left:14px;
+  }
+  .metric .num{font-size:30px; font-weight:600; color:var(--ink);}
+  .metric .lbl{font-size:12px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.08em;}
+  .metric.improve .num{color:var(--signal);}
+
+  h2{
+    font-family:var(--mono); font-size:13px; text-transform:uppercase;
+    letter-spacing:.12em; color:var(--ink-dim); margin:56px 0 20px;
+    padding-bottom:10px; border-bottom:1px solid var(--line);
+  }
+  p{color:#c9d3d0; max-width:72ch;}
+
+  table{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:13.5px;}
+  th,td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--line);}
+  th{color:var(--ink-dim); font-weight:500; text-transform:uppercase; font-size:11px; letter-spacing:.06em;}
+  td{color:var(--ink);}
+  tr.final td{color:var(--signal); font-weight:600;}
+  tr.rejected td{color:var(--ink-dim);}
+  .tag{
+    display:inline-block; font-size:10.5px; padding:2px 7px; border-radius:3px;
+    font-family:var(--mono); letter-spacing:.03em;
+  }
+  .tag.win{background:rgba(95,208,192,.14); color:var(--signal); border:1px solid rgba(95,208,192,.35);}
+  .tag.no{background:rgba(217,119,87,.12); color:var(--bad); border:1px solid rgba(217,119,87,.3);}
+
+  .bars{margin-top:8px;}
+  .bar-row{display:flex; align-items:center; gap:12px; margin:10px 0; font-family:var(--mono); font-size:12.5px;}
+  .bar-label{width:220px; color:var(--ink-dim); flex-shrink:0;}
+  .bar-track{flex:1; background:var(--panel); border:1px solid var(--line); height:22px; position:relative; border-radius:2px;}
+  .bar-fill{height:100%; background:linear-gradient(90deg, #3a7d73, var(--signal)); border-radius:1px;}
+  .bar-fill.base{background:linear-gradient(90deg,#5c4235,var(--bad));}
+  .bar-val{width:64px; text-align:right; color:var(--ink);}
+
+  .run-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    padding:20px 22px; margin-bottom:16px;
+  }
+  .run-card h3{
+    font-family:var(--mono); font-size:14.5px; margin:0 0 8px; color:var(--ink);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;
+  }
+  .run-card .bpb{color:var(--signal); font-family:var(--mono);}
+  .run-card p{margin:6px 0; font-size:14px; color:#b7c2bf;}
+  .run-card .label{color:var(--ink-dim); font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em;}
+
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  @media (max-width:640px){.grid-2{grid-template-columns:1fr;} .bar-label{width:140px; font-size:11px;}}
+
+  .attribution{
+    display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--line);
+    border-radius:6px; overflow:hidden; margin-top:8px;
+  }
+  .attribution > div{padding:20px 22px;}
+  .attribution .machine{background:var(--panel); border-right:1px solid var(--line);}
+  .attribution .human{background:var(--panel);}
+  .attribution h4{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--signal); margin:0 0 10px;}
+  .attribution ul{margin:0; padding-left:18px; color:#b7c2bf; font-size:13.5px;}
+  .attribution li{margin-bottom:6px;}
+  @media (max-width:640px){.attribution{grid-template-columns:1fr;} .attribution .machine{border-right:none; border-bottom:1px solid var(--line);}}
+
+  footer{margin-top:64px; padding-top:24px; border-top:1px solid var(--line); color:var(--ink-dim); font-family:var(--mono); font-size:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">2,000-Step LLM Speedrun · Run Summary</div>
+    <h1>4 runs, one honest optimizer swap,<br>and a 21% bpb improvement</h1>
+    <p class="subtitle">
+      A byte-level, 1.3M-parameter GPT was pushed to a custom BPE tokenizer and a
+      hybrid Muon/AdamW optimizer, entirely inside the fixed budget: ≤2,000 optimizer
+      steps, ≤2,000,000 parameters, CPU-only, trained only on the provided corpus.
+    </p>
+    <div class="headline-metric">
+      <div class="metric">
+        <div class="num">2.7049</div>
+        <div class="lbl">starting bpb</div>
+      </div>
+      <div class="metric improve">
+        <div class="num">2.1299</div>
+        <div class="lbl">final bpb (best run)</div>
+      </div>
+      <div class="metric improve">
+        <div class="num">−21.3%</div>
+        <div class="lbl">bpb reduction</div>
+      </div>
+      <div class="metric">
+        <div class="num">1,369,920</div>
+        <div class="lbl">params (cap 2,000,000)</div>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <h2>Score progression</h2>
+    <p>Lower bits-per-byte is better. Each bar is a full, completed 2,000-step run scored with the unmodified <code>evaluate.py</code> against <code>dev_eval.txt</code>.</p>
+    <div class="bars">
+      <div class="bar-row">
+        <div class="bar-label">Run A · byte-level + optimizer fixes</div>
+        <div class="bar-track"><div class="bar-fill base" style="width:100%"></div></div>
+        <div class="bar-val">2.7049</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">Run C · BPE vocab=700, AdamW</div>
+        <div class="bar-track"><div class="bar-fill" style="width:83.6%"></div></div>
+        <div class="bar-val">2.2616</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">Run B · BPE vocab=1500, AdamW</div>
+        <div class="bar-track"><div class="bar-fill" style="width:81.0%"></div></div>
+        <div class="bar-val">2.1895</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">Run D · BPE vocab=700, Muon+AdamW ★</div>
+        <div class="bar-track"><div class="bar-fill" style="width:78.8%"></div></div>
+        <div class="bar-val">2.1299</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Run table</h2>
+    <table>
+      <thead>
+        <tr><th>Run</th><th>Tokenizer</th><th>Optimizer</th><th>Params</th><th>Steps</th><th>Dev bpb</th><th>Result</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>A</td><td>Byte-level (vocab 256)</td><td>AdamW + warmup/cosine/clip</td>
+          <td>1,298,880</td><td>2000</td><td>2.7049</td><td><span class="tag no">baseline</span></td>
+        </tr>
+        <tr class="rejected">
+          <td>C</td><td>BPE (vocab 700)</td><td>AdamW + warmup/cosine/clip</td>
+          <td>1,369,920</td><td>2000</td><td>2.2616</td><td><span class="tag no">superseded</span></td>
+        </tr>
+        <tr>
+          <td>B</td><td>BPE (vocab 1500)</td><td>AdamW + warmup/cosine/clip</td>
+          <td>1,497,920</td><td>2000</td><td>2.1895</td><td><span class="tag win">improved</span></td>
+        </tr>
+        <tr class="final">
+          <td>D ★</td><td>BPE (vocab 700)</td><td>Muon (2D weights) + AdamW (embeds/norms)</td>
+          <td>1,369,920</td><td>2000</td><td>2.1299</td><td><span class="tag win">final / best</span></td>
+        </tr>
+        <tr class="rejected">
+          <td>E</td><td>BPE (vocab 1500)</td><td>Muon (2D weights) + AdamW (embeds/norms)</td>
+          <td>1,497,920</td><td>2000</td><td>2.1333</td><td><span class="tag no">superseded</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:13px; margin-top:14px; color:var(--ink-dim);">
+      Run E confirms Run D as final: scaling the tokenizer vocab up from 700 to 1500 under Muon
+      is essentially a wash (2.1299 → 2.1333, a slight regression) despite 128K more parameters —
+      unlike under AdamW, where the same vocab jump gave a real improvement (Run C → Run B,
+      2.2616 → 2.1895). Muon's optimization efficiency appears to close most of the gap that extra
+      vocab capacity was providing AdamW, so the leaner vocab=700 model is kept as final.
+    </p>
+  </section>
+
+  <section>
+    <h2>Run-by-run reasoning</h2>
+
+    <div class="run-card">
+      <h3><span>Run A — Fix the optimizer before anything else</span><span class="bpb">bpb 2.7049</span></h3>
+      <p><span class="label">Hypothesis</span> — The starter trainer used constant-LR Adam with no warmup, no weight decay, no gradient clipping, and unscaled initialization. These are cheap, well-understood fixes that should help regardless of tokenizer.</p>
+      <p><span class="label">Change</span> — Switched to AdamW (weight decay 0.1 on 2D+ params only), added linear warmup (100 steps) + cosine decay to 10% of peak LR, added gradient-norm clipping at 1.0, tied input/output embeddings, and rescaled residual-branch init by 1/√(2·n_layer) following GPT-2 convention.</p>
+      <p><span class="label">Conclusion</span> — Establishes a clean, stable baseline (loss curve fell smoothly 5.51 → 1.93 in the raw loss sense) to isolate the effect of later changes against.</p>
+    </div>
+
+    <div class="run-card">
+      <h3><span>Run C — Try a small BPE vocab</span><span class="bpb">bpb 2.2616</span></h3>
+      <p><span class="label">Hypothesis</span> — Byte-level tokenization costs 2–3 tokens per Devanagari (Hindi) character, so the 128-token context window covers roughly a third as much real Hindi text as English text. A trained BPE tokenizer should compress this and let each step cover more real content.</p>
+      <p><span class="label">Change</span> — Replaced <code>ByteTokenizer</code> with a from-scratch BPE implementation trained only on <code>train_corpus.txt</code> (word-frequency greedy pair merging), target vocab 700.</p>
+      <p><span class="label">Conclusion</span> — Confirmed the tokenizer hypothesis directionally (2.7049 → 2.2616), and cut the same <code>dev_eval.txt</code> file from 159,225 byte-tokens down to 64,396 BPE-tokens — a 2.5× compression. But left a question open: was 700 the right vocab size?</p>
+    </div>
+
+    <div class="run-card">
+      <h3><span>Run B — Scale the BPE vocab up</span><span class="bpb">bpb 2.1895</span></h3>
+      <p><span class="label">Hypothesis</span> — A larger vocab compresses further; is convergence difficulty (more output classes) or context coverage (fewer tokens per window) the dominant factor within a fixed 2,000-step budget?</p>
+      <p><span class="label">Change</span> — Retrained BPE to vocab 1500 (dev_eval.txt: 55,641 tokens, 2.9× compression). Same optimizer/init as Run A.</p>
+      <p><span class="label">Conclusion</span> — Context coverage won: vocab 1500 beat vocab 700 (2.1895 vs 2.2616) despite having more embedding rows to learn, at a cost of ~128K extra parameters (well inside the 2M cap).</p>
+    </div>
+
+    <div class="run-card">
+      <h3><span>Run D — Swap the optimizer, not just tune it</span><span class="bpb">bpb 2.1299 · final</span></h3>
+      <p><span class="label">Hypothesis</span> — Community results on fixed-step/fixed-architecture "speedrun" benchmarks report Muon (momentum orthogonalized via Newton-Schulz iteration) reaching a target loss in meaningfully fewer steps than AdamW on 2D transformer weight matrices, by equalizing gradient singular values that AdamW under-weights. This is exactly the fixed-step constraint this assignment imposes.</p>
+      <p><span class="label">Change</span> — Hybrid optimizer: Muon (momentum 0.95, 5-step Newton-Schulz, aspect-ratio-scaled updates) for all 2D attention/MLP weight matrices; AdamW retained for embeddings, layer norms, and biases. Same warmup/cosine LR shape, rebased to Muon's LR scale. Tested against the smaller vocab=700 tokenizer to isolate the optimizer's effect cleanly from Run B's vocab change.</p>
+      <p><span class="label">Debugging note</span> — First attempt silently trained for only one real step due to an indentation error that moved the forward/backward/step logic outside the training loop (caught because runtime dropped from ~400s to ~1s and bpb landed at the theoretical random-guess value for vocab 700, ln(700)/ln(2) ≈ 9.45 bits/token). Fixed and rerun cleanly.</p>
+      <p><span class="label">Conclusion</span> — Muon beat AdamW at the same vocab (2.2616 → 2.1299, a 5.8% relative improvement) using <em>fewer</em> parameters than Run B's AdamW/vocab-1500 result, while still visibly descending in loss at step 2000 — suggesting the optimizer swap had not yet fully converged and may have further headroom beyond this step budget.</p>
+    </div>
+
+    <div class="run-card">
+      <h3><span>Run E — Does Muon still benefit from a bigger vocab?</span><span class="bpb">bpb 2.1333</span></h3>
+      <p><span class="label">Hypothesis</span> — Under AdamW, scaling vocab 700→1500 clearly helped (Run C → Run B). If that effect is independent of optimizer choice, the same jump should help under Muon too.</p>
+      <p><span class="label">Change</span> — Identical Muon+AdamW hybrid setup as Run D, retrained against the vocab=1500 BPE tokenizer instead of vocab=700.</p>
+      <p><span class="label">Conclusion</span> — Hypothesis rejected. bpb was flat-to-slightly-worse (2.1299 → 2.1333) despite 128K additional parameters. Muon's per-step optimization efficiency appears to substitute for some of what extra vocab capacity was buying AdamW — so the two levers are not simply additive. <strong>Run D (vocab 700) is kept as the final checkpoint</strong>: best score, fewest parameters.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Final architecture</h2>
+    <div class="grid-2">
+      <div>
+        <table>
+          <tbody>
+            <tr><td>n_layer</td><td>4</td></tr>
+            <tr><td>n_head</td><td>4</td></tr>
+            <tr><td>n_embd</td><td>160</td></tr>
+            <tr><td>block_size</td><td>128</td></tr>
+            <tr><td>vocab_size</td><td>700 (BPE)</td></tr>
+            <tr><td>tie_weights</td><td>true</td></tr>
+            <tr><td>total params</td><td>1,369,920</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <table>
+          <tbody>
+            <tr><td>2D weights</td><td>Muon, momentum 0.95</td></tr>
+            <tr><td>embeds/norms/bias</td><td>AdamW, β=(0.9, 0.95), wd 0.1</td></tr>
+            <tr><td>schedule</td><td>100-step warmup + cosine → 10%</td></tr>
+            <tr><td>grad clip</td><td>1.0 (global norm)</td></tr>
+            <tr><td>init</td><td>std 0.02, residual scaled 1/√(2L)</td></tr>
+            <tr><td>steps</td><td>2000 / 2000 cap</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+
+  <footer>
+    generated for submission · dev_eval.txt is a proxy metric — final grading uses a held-out hidden file
+  </footer>
+
+</div>
+</body>
+</html>
